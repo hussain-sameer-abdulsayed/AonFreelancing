@@ -11,14 +11,8 @@ namespace AonFreelancing.Controllers
     public class ProjectController : ControllerBase
     {
         private static List<Project> projects = new List<Project>();
-        static int createId;
-        int ChangeId()
-        {
-            createId +=1;
-            return createId;
-        }   
-
-
+        static int createId = 1;
+        
 
         [HttpGet]
         public IActionResult GetAll()
@@ -46,7 +40,7 @@ namespace AonFreelancing.Controllers
             }
             Project project = new Project()
             {
-                Id = ChangeId(),
+                Id = createId++,
                 Title = projectTitle
             };
             projects.Add(project);
