@@ -1,4 +1,6 @@
-﻿using AonFreelancing.Models;
+﻿using AonFreelancing.Context;
+using AonFreelancing.DTOs;
+using AonFreelancing.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,24 +10,38 @@ namespace AonFreelancing.Controllers
     [ApiController]
     public class FreelancersController : ControllerBase
     {
-        private static List<Freelancer> freelancerList = new List<Freelancer>();
+        private readonly MyContext _context;
+
+        public FreelancersController(MyContext context)
+        {
+            _context = context;
+        }
+
         [HttpGet]
         public IActionResult GetAll()
         {
             
-            return Ok(freelancerList);
+            return Ok(_context.Freelancers.ToList());
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] Freelancer freelancer) { 
-            freelancerList.Add(freelancer);
-            return CreatedAtAction("Create", new { Id = freelancer.Id }, freelancerList);
+        public IActionResult Create([FromBody] AddFreelancerDto freelancerDto) {
+            Freelancer freelancer = new Freelancer()
+            {
+                Name = freelancerDto.Name,
+                Username = freelancerDto.UserName,
+                Skills = freelancerDto.Skills,
+                Password = freelancerDto.Password,
+            };
+            _context.Freelancers.Add(freelancer);
+            _context.SaveChanges();
+            return CreatedAtAction("Create", new { Id = freelancer.Id }, freelancer);
         }
 
         [HttpGet("{id}")]
         public IActionResult GetFreelancer(int id)
         {
-            Freelancer fr = freelancerList.FirstOrDefault(f => f.Id == id);
+            Freelancer fr = _context.Freelancers.FirstOrDefault(f => f.Id == id);
 
             if (fr == null)
             {
@@ -38,10 +54,11 @@ namespace AonFreelancing.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            Freelancer f = freelancerList.FirstOrDefault(f=>f.Id == id);
-            if(f!= null)
+            Freelancer freelancer = _context.Freelancers.FirstOrDefault(f=>f.Id == id);
+            if(freelancer != null)
             {
-                freelancerList.Remove(f);
+                _context.Freelancers.Remove(freelancer);
+                _context.SaveChanges();
                 return Ok("Deleted");
 
             }
@@ -49,7 +66,27 @@ namespace AonFreelancing.Controllers
             return NotFound();
         }
 
+        [HttpPut("{id}")]
+        public IActionResult Update([FromBody] UpdateFreelancerDto freelancerDto,int id)
+        {
+            Freelancer freelancer = _context.Freelancers.FirstOrDefault(f => f.Id == id);
+            if (freelancer != null)
+            {
+                if(string.IsNullOrEmpty(freelancerDto.Name))
+                {
+                    freelancer.Name = freelancerDto.Name;
+                }
+                if (string.IsNullOrEmpty(freelancerDto.Skills))
+                {
+                    freelancer.Skills = freelancerDto.Skills;
+                }
+                _context.SaveChanges();
+                return Ok("Deleted");
 
+            }
+
+            return NotFound();
+        }
 
     }
 }

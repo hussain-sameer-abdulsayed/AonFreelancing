@@ -1,6 +1,9 @@
-﻿using AonFreelancing.Models;
+﻿using AonFreelancing.Context;
+using AonFreelancing.DTOs;
+using AonFreelancing.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace AonFreelancing.Controllers
 {
@@ -10,29 +13,33 @@ namespace AonFreelancing.Controllers
     [ApiController]
     public class ProjectController : ControllerBase
     {
-        private static List<Project> projects = new List<Project>();
-        static int createId = 1;
-        
+        private readonly MyContext _context;
+
+        public ProjectController(MyContext context)
+        {
+            _context = context;
+        }
 
         [HttpGet]
         public IActionResult GetAll()
         {
-            return Ok(projects);
+            return Ok(_context.Projects.ToList());
         }
 
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
-            var project = projects.FirstOrDefault(p=>p.Id == id);
+            var project = _context.Projects
+                .Include(p=>p.Client)
+                .FirstOrDefault(p=>p.Id == id);
             if (project == null)
             {
                 return NotFound();
             }
             return Ok(project);
-            
         }
         [HttpPost]
-        public IActionResult Create([FromBody] string projectTitle)
+        public IActionResult Create([FromBody] CreateProjectDto projectDto)
         {
             if(!ModelState.IsValid)
             {
@@ -40,22 +47,24 @@ namespace AonFreelancing.Controllers
             }
             Project project = new Project()
             {
-                Id = createId++,
-                Title = projectTitle
+                ClientId = projectDto.ClientId,
+                Title = projectDto.Title,
             };
-            projects.Add(project);
-            return Ok(projects);
+            _context.Projects.Add(project);
+            _context.SaveChanges();
+            return Ok();
         }
 
         [HttpPut("{id}")]
         public IActionResult Update([FromBody] string title,int id)
         {
-            var project = projects.FirstOrDefault(p => p.Id == id);
+            var project = _context.Projects.FirstOrDefault(p => p.Id == id);
             if (project == null)
             {
                 return NotFound();
             }
             project.Title = title;
+            _context.SaveChanges();
             return Ok(project);
 
         }
@@ -63,13 +72,14 @@ namespace AonFreelancing.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var project = projects.FirstOrDefault(p => p.Id == id);
+            var project = _context.Projects.FirstOrDefault(p => p.Id == id);
             if (project == null)
             {
                 return NotFound();
             }
-            projects.Remove(project);
-            return Ok(projects);
+            _context.Projects.Remove(project);
+            _context.SaveChanges();
+            return Ok();
 
         }
     }

@@ -10,6 +10,9 @@ namespace AonFreelancing.Models
     {
         public string CompanyName { get; set; }
 
+        // a client has many projects one-to-many relationship
+        public List<Project> Projects { get; set; }
+
         public override void DisplayProfile()
         {
             Console.WriteLine($"Client display profile, Company: {CompanyName}");
