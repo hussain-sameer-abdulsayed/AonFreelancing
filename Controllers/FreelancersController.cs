@@ -49,7 +49,7 @@ namespace AonFreelancing.Controllers
         }
 
 
-        [HttpGet("{id}")]
+        [HttpGet("simple/{id}")]
         public async Task<IActionResult> GetFreelancerById(int id)
         {
             var fr = new ViewFreelancerDto();
@@ -79,7 +79,7 @@ namespace AonFreelancing.Controllers
         }
 
 
-        [HttpGet("{id}/loadprojects")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetFreelancerByIdWithProjects([FromQuery] string loadprojects, int id)
         {
             var frDto = new ViewFreelancerDto();
